@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -18,7 +17,7 @@ where
 
 impl<T> Heap<T>
 where
-    T: Default,
+    T: Default + Ord,
 {
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
@@ -38,6 +37,15 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.count +=1;
+        self.items.push(value);
+        let mut cnt = self.count;
+        while  cnt > 1&& (self.comparator)(&self.items[cnt], &self.items[self.parent_idx(cnt)])
+        {
+            let p = self.parent_idx(cnt);
+            self.items.swap(p,cnt);
+            cnt = self.parent_idx(cnt);
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +66,16 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+		if self.right_child_idx(idx) > self.count {
+            self.left_child_idx(idx)
+        } else {
+            if (self.comparator)(&self.items[self.right_child_idx(idx)],
+             &self.items[self.left_child_idx(idx)]) {
+                self.right_child_idx(idx)
+            } else {
+                self.left_child_idx(idx)
+            }
+        }
     }
 }
 
@@ -79,13 +96,35 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Ord + Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+		if self.count == 0 {None}
+        else if self.count == 1 {
+            let rst = self.items[1].clone();
+            self.items.remove(self.count as usize);
+            self.count -=1;
+            Some(rst)
+        } else {
+            let rst = self.items[1].clone();
+            self.items.swap(1,self.count);
+            self.items.remove(self.count as usize);
+            self.count -=1;
+            let mut cnt = 1;
+            while 2*cnt <= self.count {
+                let a = self.smallest_child_idx(cnt);
+                if (self.comparator)(&self.items[a], &self.items[cnt]) {
+                    self.items.swap(a,cnt);
+                    cnt = a;
+                } else {
+                    break;
+                }
+            }
+            Some(rst)
+        }
     }
 }
 
